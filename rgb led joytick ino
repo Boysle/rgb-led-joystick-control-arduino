@@ -1,0 +1,120 @@
+#include <LiquidCrystal.h>
+#define joyX A0
+#define joyY A1
+
+
+LiquidCrystal lcd(13, 12, 5, 4, 3, 2);
+const int redP = 11;
+const int blueP = 10;
+const int greenP = 9;
+const int deadzone = 30;
+const float changeSpeed = 0.01;
+int selected = 0;
+int xValue, yValue;
+int redValue = 255;
+int greenValue = 255;
+int blueValue = 255;
+void setup() {
+  Serial.begin(9600);
+  Serial.println("Application Start");
+  lcd.begin(16, 2);
+  lcd.print("-RED-|Green|Blue"); 
+  lcd.setCursor(0,1);
+  lcd.print(" 0   | 0   | 0   ");
+}
+
+void loop() {
+  xValue = analogRead(joyX);
+  int xMap = map(xValue, 0, 1023, -512, 512);
+  if (xMap >= 507) {
+    Serial.println("Moving Right!");
+    selected += 1;
+    if (selected > 2){
+      selected = 0;
+    }
+    adjustLcd(selected,255-redValue,255-greenValue,255-blueValue);
+    delay(500);
+  }
+  else if (xMap <= -507) {
+    Serial.println("Moving Left!");
+    selected -= 1;
+    if (selected < 0){
+      selected = 2;
+    }
+    adjustLcd(selected,255-redValue,255-greenValue,255-blueValue);
+    delay(500);
+  }
+  yValue = analogRead(joyY);
+  int yMap = map(yValue, 0, 1023, -512, 512);
+  yMap = -yMap;
+  // If we are moving the analog up
+  if (yMap > deadzone){
+    if (selected == 0){redValue = max(0, redValue - yMap * changeSpeed);
+        lcd.setCursor(1,1); lcd.print(formatNumber(255-redValue));}
+    else if (selected == 1){greenValue = max(0, greenValue - yMap * changeSpeed);
+        lcd.setCursor(6,1); lcd.print(formatNumber(255-greenValue));}
+    else if (selected == 2){blueValue = max(0, blueValue - yMap * changeSpeed);
+        lcd.setCursor(12,1); lcd.print(formatNumber(255-blueValue));}
+  }
+  // If we are moving the analog down
+  else if (yMap < -deadzone){
+    if (selected == 0){redValue = min(255, redValue - yMap * changeSpeed);
+        lcd.setCursor(1,1); lcd.print(formatNumber(255-redValue));}
+    else if (selected == 1){greenValue = min(255, greenValue - yMap * changeSpeed);
+        lcd.setCursor(6,1); lcd.print(formatNumber(255-greenValue));}
+    else if (selected == 2){blueValue = min(255, blueValue - yMap * changeSpeed);
+        lcd.setCursor(12,1); lcd.print(formatNumber(255-blueValue));}
+  }
+  Serial.print("X value:"); Serial.print(xMap);
+  Serial.print(" Y value:"); Serial.println(yMap);
+  // AnalogRead returns a value between 0 and 1023
+  // AnalogWrite wants a value between 0 and 255
+  Serial.print("Red value:"); Serial.print(255-redValue);
+  Serial.print(" Green value:"); Serial.print(255-greenValue);
+  Serial.print(" Blue value:"); Serial.println(255-blueValue);
+  analogWrite(redP, redValue);
+  analogWrite(greenP, greenValue);
+  analogWrite(blueP, blueValue);
+  delay(50);
+}
+
+// Function for adjusting the lcd screen menu
+void adjustLcd(int sel, int r, int g, int b){
+  lcd.clear();
+  lcd.setCursor(0,0);
+  if(sel == 0){
+    lcd.print("-RED-|Green|Blue"); 
+    lcd.setCursor(1,1); lcd.print(r);
+    lcd.setCursor(5,1); lcd.print("|");
+    lcd.setCursor(7,1); lcd.print(g);
+    lcd.setCursor(11,1); lcd.print("|");
+    lcd.setCursor(13,1); lcd.print(b);
+  }
+  else if(sel == 1){
+    lcd.print("Red|-GREEN-|Blue"); 
+    lcd.setCursor(0,1); lcd.print(r);
+    lcd.setCursor(3,1); lcd.print("|");
+    lcd.setCursor(6,1); lcd.print(g);
+    lcd.setCursor(11,1); lcd.print("|");
+    lcd.setCursor(13,1); lcd.print(b);
+  }
+  else if(sel == 2){
+    lcd.print("Red|Green|-BLUE-"); 
+    lcd.setCursor(0,1); lcd.print(r);
+    lcd.setCursor(3,1); lcd.print("|");
+    lcd.setCursor(5,1); lcd.print(g);
+    lcd.setCursor(9,1); lcd.print("|");
+    lcd.setCursor(12,1); lcd.print(b);
+  }
+}
+
+String formatNumber(int num) {
+    String numStr = String(num);
+
+    // Adding spaces to the right if the number has less than three digits
+    while (numStr.length() < 3) {
+        numStr += ' ';  // Add a space character
+    }
+
+    return numStr;
+}
