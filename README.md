@@ -3,11 +3,11 @@ This challenge can be overcome in many innovative ways, I chose this joystick te
 Although it may feel like only one input device is being utilized, a joystick is made of two potentiometers indicating the X and Y axes with a re-centering mechanism.
 
 Components used:
--One Arduino Uno R3
--One analog joystick
--One RGB LED
--One 16x2 LCD display
--One potentiometer (used for setting the brightness of the LCD)
+One Arduino Uno R3
+One analog joystick
+One RGB LED
+One 16x2 LCD display
+One potentiometer (used for setting the brightness of the LCD)
 
 The project works as follows:
 The first thing the user sees is the red-green-blue values displayed as a selection menu on the LCD.
